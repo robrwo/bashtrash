@@ -1,0 +1,160 @@
+#!/bin/bash
+
+# $Id: trash 2009/02/01 23:37:11 GMT rr@dwaible $
+# Version 0.2.0
+# Robert Rothenberg
+
+# This is a bash script implementation of the FreeDesktop.org Trash
+# Specification.
+
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+
+if [ -z "$1" ]; then
+  echo "Usage: trash FILE..."
+  exit 1
+fi
+
+# sed script to encode filenames
+
+sedscript='s/ /%20/g 
+s/!/%21/g
+s/"/%22/g
+s/\#/%23/g
+s/\$/%24/g
+s/\&/%26/g
+s/'\''/%27/g
+s/(/%28/g
+s/)/%29/g
+s/\*/%2a/g
+s/+/%2b/g
+s/,/%2c/g
+s/-/%2d/g
+s/:/%3a/g
+s/;/%3b/g
+s//%3e/g
+s/?/%3f/g
+s/@/%40/g
+s/\[/%5b/g
+s/\\/%5c/g
+s/\]/%5d/g
+s/\^/%5e/g
+s/_/%5f/g
+s/`/%60/g
+s/{/%7b/g
+s/|/%7c/g
+s/}/%7d/g
+s/~/%7e/g
+s/	/%09/g'
+
+function url_encode {
+  echo $1 |sed -e "$sedscript"
+}
+
+
+function get_trashdir {
+  mounts=`cat /etc/fstab |grep -v \# |awk '{print $2}'`
+  base=/
+
+  if [ "$EUID" != "0" ]; then
+    mounts="$HOME $mounts"
+  fi
+
+  for i in $mounts
+  do
+    if [[ $1 =~ ^$i ]]
+    then
+      if [[ $i =~ ^$base ]]
+      then
+        base=$i
+      fi
+    fi
+  done
+
+  if [ "$base" != "$HOME" ]; then
+    trashdir="$base/.Trash/$UID"
+    if [ ! -d "$trashdir" ]; then
+      trashdir="$base/.Trash-$UID"
+    fi
+
+    mkdir -p "$trashdir"
+    if [ "$?" != "0" ]; then
+      base=$HOME
+    fi 
+  fi
+
+  if [ "$base" == "$HOME" ]; then
+    base=$XDG_DATA_HOME
+    if [ -z "$base" ]; then
+      base="$HOME/.local/share/"
+    fi
+    trashdir="$base/Trash"
+  fi
+  
+  echo $trashdir
+}
+
+for f in "$@"
+do
+  # get full pathname of file
+
+  filename=$(readlink -f "$f")
+  dir=${filename%/*}
+
+  trashdir=`get_trashdir "$dir"`
+
+  mkdir -p "$trashdir/files"
+  if [ "$?" != "0" ]; then
+    echo "Unable to write to $trashdir" 1>&2
+    exit 2
+  fi
+
+  mkdir -p "$trashdir/info"
+  if [ "$?" != "0" ]; then
+    echo "Unable to write to $trashdir" 1>&2
+    exit 2
+  fi
+
+  trashname="${filename##*/}"
+  origname="${trashname%%.*}"
+  ext=".${trashname##*.}"
+  if [ "$ext" == ".$trashname" ]; then
+    ext=""
+  fi
+  
+  cnt=1
+  while [ -e "$trashdir/files/$trashname" ] || \
+        [ -e "$trashdir/info/$trashname.trashinfo" ]; do
+    trashname="${origname}_${cnt}${ext}"
+    let cnt=cnt+1
+  done
+
+  deletedfile="$trashdir/files/$trashname"
+  deletedinfo="$trashdir/info/$trashname.trashinfo"
+
+  ##echo "$filename" 1>&2 
+
+  canon=`url_encode $filename`
+
+  cat > "$deletedinfo" <<END
+[Trash Info]
+Path=$canon
+DeletionDate=`date +"%FT%H:%M:%S"`
+END
+
+  mv -v "$filename" "$deletedfile"
+done
+
+exit 0
+
+
+
+
+
