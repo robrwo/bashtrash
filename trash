@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# $Id: trash 2009/02/01 23:37:11 GMT rr@dwaible $
-# Version 0.2.0
+# $Id: trash 2010/11/07 17:29:43 GMT rr@dwaible $
+# Version 0.2.1
 # Robert Rothenberg
 
 # This is a bash script implementation of the FreeDesktop.org Trash
@@ -60,7 +60,7 @@ function url_encode {
 
 
 function get_trashdir {
-  mounts=`cat /etc/fstab |grep -v \# |awk '{print $2}'`
+  mounts=`awk '{ print $2 }' /proc/mounts`
   base=/
 
   if [ "$EUID" != "0" ]; then
