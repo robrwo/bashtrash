@@ -15,7 +15,7 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 
-version="0.3.2 \$Id: trash 2011/03/17 14:11:32 GMT rr@dwaible $"
+version="0.3.3 \$Id: trash 2011/03/17 14:46:39 GMT rr@dwaible $"
 
 function show_usage {
   cat << EOU
@@ -30,16 +30,20 @@ Options:
 EOU
 }
 
+function try_help {
+  echo "Try \`$0 --help' for more information." 1>&2
+  exit 1
+}
+
 # Option handling
 
-if ! options=$(getopt -o hvi -l help,verbose,interactive,version -- "$@")
+if ! options=$(getopt -o hvi -l "help,verbose,interactive::,version" -n "$0" -- $@)
 then
   exit 1
 fi
 
 if [ $# -eq 0 ]; then
-  echo "Try \`$0 --help' for more information." 1>&2
-  exit 1
+  try_help
 fi
 
 set -- $options
@@ -47,15 +51,29 @@ set -- $options
 verbose=0
 interactive=never
 
+function strip_quotes {
+  x=$1
+  x=${x#\'}
+  x=${x%\'}
+  echo "${x}"
+}
+
 while [ $# -gt 0 ]
 do
 case $1 in
     -h|--help) show_usage ; exit 1;;
     -v|--verbose) verbose=1 ;;
-    -i|--interactive) interactive=always ;;
+    -i) interactive=always ;;
+    --interactive) shift ;
+      arg=`strip_quotes "$1"`
+      if [ -z "$arg" ]; then
+        arg=always
+      fi 
+      interactive=$arg
+      ;;
     --version) echo "$0 $version" 1>&2;;
     (--) shift; break;;
-    (-*) echo "$0: error - unrecognized option $1" 1>&2; exit 1;;
+    (-*) echo "$0: invalid option -- '$1'" 1>&2 ; try_help ; exit 1 ;;
     (*) break;;
     esac
   shift
@@ -150,23 +168,30 @@ fi
 function can_trash {
   filename=$1
 
-  type="file"
-  if [ -d "$filename" ]; then
-    type="directory"
-  fi
+  if [ ! -e "$filename" ]; then
+    echo "$0: cannot move \`$filename' to trash: No such file or directory" 1>&2 
+    echo 0
 
-  case $interactive in
-    never) echo 1 ;;
-    always)
-      read -p "$0: move ${type} '${filename}' to trash?" yn
-      if [[ "$yn" =~ ^[yY]$ ]]; then
-        echo 1
-      else
-        echo 0
-      fi  
-      ;;
-    *) echo "$0:unsupported value interactive=${interactive}" 1>&2 ; echo 0; exit 1 ;;
-  esac
+  else
+
+    type="file"
+    if [ -d "$filename" ]; then
+      type="directory"
+    fi
+
+    case $interactive in
+      never) echo 1 ;;
+      always)
+        read -p "$0: move ${type} '${filename}' to trash?" yn
+        if [[ "$yn" =~ ^[yY]$ ]]; then
+          echo 1
+        else
+          echo 0
+        fi  
+        ;;
+      *) echo "$0: unsupported value interactive=${interactive}" 1>&2 ; echo 0; exit 1 ;;
+    esac
+  fi
 }
 
 function init_trashdir {
@@ -174,13 +199,13 @@ function init_trashdir {
 
   mkdir -p "$trashdir/files"
   if [ "$?" != "0" ]; then
-    echo "Unable to write to $trashdir" 1>&2
+    echo "$0: unable to write to $trashdir" 1>&2
     exit 2
   fi
 
   mkdir -p "$trashdir/info"
   if [ "$?" != "0" ]; then
-    echo "Unable to write to $trashdir" 1>&2
+    echo "$0: unable to write to $trashdir" 1>&2
     exit 2
   fi
 }
@@ -221,12 +246,12 @@ END
   mv $mv_opts "$filename" "$deletedfile"
 }
 
+
 for f in "$@"
 do
   # strip quotes added by getopts
 
-  f=${f#\'}
-  f=${f%\'}
+  f=`strip_quotes "${f}"`
 
   # get full pathname of file
 
