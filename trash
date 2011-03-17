@@ -15,7 +15,7 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 
-version="0.3.0 \$Id: trash 2011/03/17 09:54:46 GMT rr@dwaible $"
+version="0.3.0 \$Id: trash 2011/03/17 09:58:28 GMT rr@dwaible $"
 
 function show_usage {
   cat << EOU
@@ -179,8 +179,6 @@ do
 
   deletedfile="$trashdir/files/$trashname"
   deletedinfo="$trashdir/info/$trashname.trashinfo"
-
-  ##echo "$filename" 1>&2 
 
   canon=`url_encode $filename`
 
