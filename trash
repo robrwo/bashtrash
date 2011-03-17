@@ -15,7 +15,7 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 
-version="0.3.3 \$Id: trash 2011/03/17 14:46:39 GMT rr@dwaible $"
+version="0.3.4 \$Id: trash 2011/03/17 14:56:07 GMT rr@dwaible $"
 
 function show_usage {
   cat << EOU
