@@ -1,11 +1,9 @@
 #!/bin/bash
 
-# $Id: trash 2010/11/07 17:29:43 GMT rr@dwaible $
-# Version 0.2.1
-# Robert Rothenberg
-
-# This is a bash script implementation of the FreeDesktop.org Trash
+# bashtrash - a bash script implementation of the FreeDesktop.org Trash
 # Specification.
+
+# Copyright (c) 2009-2011, Robert Rothenberg <robrwo@gmail.com>
 
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -17,10 +15,49 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 
-if [ -z "$1" ]; then
-  echo "Usage: trash FILE..."
+version="0.3.0 \$Id: trash 2011/03/17 09:54:46 GMT rr@dwaible $"
+
+function show_usage {
+  cat << EOU
+Usage: $0 [OPTION]... FILE...
+
+Move files into the trash.
+
+Options:
+  --version		show program's version number and exit
+  -h, --help		show this help message and exit
+  -v, --verbose		explain what is being done
+EOU
+}
+
+# Option handling
+
+if ! options=$(getopt -o hv -l help,verbose,version -- "$@")
+then
   exit 1
 fi
+
+if [ $# -eq 0 ]; then
+  echo "Try \`$0 --help' for more information." 1>&2
+  exit 1
+fi
+
+set -- $options
+
+verbose=""
+
+while [ $# -gt 0 ]
+do
+case $1 in
+    -h|--help) show_usage ;;
+    -v|--verbose) verbose="-v" ;;
+    --version) echo "$0 $version" 1>&2;;
+    (--) shift; break;;
+    (-*) echo "$0: error - unrecognized option $1" 1>&2; exit 1;;
+    (*) break;;
+    esac
+  shift
+done
 
 # sed script to encode filenames
 
@@ -57,7 +94,6 @@ s/	/%09/g'
 function url_encode {
   echo $1 |sed -e "$sedscript"
 }
-
 
 function get_trashdir {
   mounts=`awk '{ print $2 }' /proc/mounts`
@@ -103,9 +139,14 @@ function get_trashdir {
 
 for f in "$@"
 do
+  # strip quotes added by getopts
+
+  f=${f#\'}
+  f=${f%\'}
+
   # get full pathname of file
 
-  filename=$(readlink -f "$f")
+  filename=$(readlink -f "${f}")
   dir=${filename%/*}
 
   trashdir=`get_trashdir "$dir"`
@@ -149,7 +190,7 @@ Path=$canon
 DeletionDate=`date +"%FT%H:%M:%S"`
 END
 
-  mv -v "$filename" "$deletedfile"
+  mv $verbose "$filename" "$deletedfile"
 done
 
 exit 0
