@@ -15,7 +15,7 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 
-version="0.3.1 \$Id: trash 2011/03/17 13:34:24 GMT rr@dwaible $"
+version="0.3.2 \$Id: trash 2011/03/17 14:11:32 GMT rr@dwaible $"
 
 function show_usage {
   cat << EOU
@@ -32,7 +32,7 @@ EOU
 
 # Option handling
 
-if ! options=$(getopt -o hv -l help,verbose,version -- "$@")
+if ! options=$(getopt -o hvi -l help,verbose,interactive,version -- "$@")
 then
   exit 1
 fi
@@ -45,12 +45,14 @@ fi
 set -- $options
 
 verbose=0
+interactive=never
 
 while [ $# -gt 0 ]
 do
 case $1 in
     -h|--help) show_usage ; exit 1;;
     -v|--verbose) verbose=1 ;;
+    -i|--interactive) interactive=always ;;
     --version) echo "$0 $version" 1>&2;;
     (--) shift; break;;
     (-*) echo "$0: error - unrecognized option $1" 1>&2; exit 1;;
@@ -145,19 +147,30 @@ if [ $verbose != 0 ]; then
   mv_opts="${mv_opts} -v"
 fi
 
-for f in "$@"
-do
-  # strip quotes added by getopts
+function can_trash {
+  filename=$1
 
-  f=${f#\'}
-  f=${f%\'}
+  type="file"
+  if [ -d "$filename" ]; then
+    type="directory"
+  fi
 
-  # get full pathname of file
+  case $interactive in
+    never) echo 1 ;;
+    always)
+      read -p "$0: move ${type} '${filename}' to trash?" yn
+      if [[ "$yn" =~ ^[yY]$ ]]; then
+        echo 1
+      else
+        echo 0
+      fi  
+      ;;
+    *) echo "$0:unsupported value interactive=${interactive}" 1>&2 ; echo 0; exit 1 ;;
+  esac
+}
 
-  filename=$(readlink -f "${f}")
-  dir=${filename%/*}
-
-  trashdir=`get_trashdir "$dir"`
+function init_trashdir {
+  trashdir=$1
 
   mkdir -p "$trashdir/files"
   if [ "$?" != "0" ]; then
@@ -170,6 +183,15 @@ do
     echo "Unable to write to $trashdir" 1>&2
     exit 2
   fi
+}
+
+function trash_file {
+  filename=$1
+
+  dir=${filename%/*}
+
+  trashdir=`get_trashdir "$dir"`
+  init_trashdir "$trashdir"
 
   trashname="${filename##*/}"
   origname="${trashname%%.*}"
@@ -188,7 +210,7 @@ do
   deletedfile="$trashdir/files/$trashname"
   deletedinfo="$trashdir/info/$trashname.trashinfo"
 
-  canon=`url_encode $filename`
+  canon=`url_encode "$filename"`
 
   cat > "$deletedinfo" <<END
 [Trash Info]
@@ -197,6 +219,24 @@ DeletionDate=`date +"%FT%H:%M:%S"`
 END
 
   mv $mv_opts "$filename" "$deletedfile"
+}
+
+for f in "$@"
+do
+  # strip quotes added by getopts
+
+  f=${f#\'}
+  f=${f%\'}
+
+  # get full pathname of file
+
+  filename=$(readlink -f "${f}")
+
+  yes=`can_trash "$filename"`
+  if [ "$yes" != "0" ]; then
+    trash_file "$filename"
+  fi
+
 done
 
 exit 0
