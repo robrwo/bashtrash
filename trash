@@ -15,7 +15,7 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 
-version="0.3.0 \$Id: trash 2011/03/17 10:01:16 GMT rr@dwaible $"
+version="0.3.1 \$Id: trash 2011/03/17 13:34:24 GMT rr@dwaible $"
 
 function show_usage {
   cat << EOU
@@ -44,13 +44,13 @@ fi
 
 set -- $options
 
-verbose=""
+verbose=0
 
 while [ $# -gt 0 ]
 do
 case $1 in
     -h|--help) show_usage ; exit 1;;
-    -v|--verbose) verbose="-v" ;;
+    -v|--verbose) verbose=1 ;;
     --version) echo "$0 $version" 1>&2;;
     (--) shift; break;;
     (-*) echo "$0: error - unrecognized option $1" 1>&2; exit 1;;
@@ -137,6 +137,14 @@ function get_trashdir {
   echo $trashdir
 }
 
+# configure options
+
+mv_opts=""
+
+if [ $verbose != 0 ]; then
+  mv_opts="${mv_opts} -v"
+fi
+
 for f in "$@"
 do
   # strip quotes added by getopts
@@ -188,7 +196,7 @@ Path=$canon
 DeletionDate=`date +"%FT%H:%M:%S"`
 END
 
-  mv $verbose "$filename" "$deletedfile"
+  mv $mv_opts "$filename" "$deletedfile"
 done
 
 exit 0
