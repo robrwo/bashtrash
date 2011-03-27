@@ -1,0 +1,42 @@
+bashtrash - a bash-shell implementation of the Freedesktop.org
+            trashcan specification.
+
+This project was originally a quick hack to show that one could
+implement a compliant trashcan utility using bash and standard Unix
+commands.  It has evolved to have options to make it (somewhat)
+compatible as a replacement for rm.
+
+It requires the following utilities:
+
+  awk
+  bash
+  cat
+  getopt
+  mkdir
+  mv
+  sed
+
+Usage: trash [OPTION]... FILE...
+
+Move files into the trash.
+
+Options:
+  --version		show program's version number and exit
+  -h, --help		show this help message and exit
+  -v, --verbose		explain what is being done
+  -i, --interactive	prompt before moving every file
+  -r, -R, --recursive   ignored (for compatability with rm)
+  -f, --force		ignore non-existent files, never prompt
+
+Copyright (c) 2009-2011, Robert Rothenberg <robrwo@gmail.com>
+
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 2 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
