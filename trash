@@ -15,11 +15,13 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 
-version="0.3.6 \$Id: trash 2011/03/17 15:03:22 GMT rr@dwaible $"
+version="0.3.7 \$Id: trash 2011/06/12 21:44:45 BST rr@rebig $"
+
+progname=`basename $0`
 
 function show_usage {
   cat << EOU
-Usage: $0 [OPTION]... FILE...
+Usage: ${progname} [OPTION]... FILE...
 
 Move files into the trash.
 
@@ -34,13 +36,13 @@ EOU
 }
 
 function try_help {
-  echo "Try \`$0 --help' for more information." 1>&2
+  echo "Try \`${progname} --help' for more information." 1>&2
   exit 1
 }
 
 # Option handling
 
-if ! options=$(getopt -o hvirRf -l "help,verbose,interactive::,version,recursive,force" -n "$0" -- $@)
+if ! options=$(getopt -o hvirRf -l "help,verbose,interactive::,version,recursive,force" -n "${progname}" -- $@)
 then
   exit 1
 fi
@@ -74,11 +76,11 @@ case $1 in
       fi
       interactive=$arg
       ;;
-    --version) echo "$0 $version" 1>&2 ;;
+    --version) echo "${progname} $version" 1>&2 ;;
     -r|-R|--recursive) ;;
     -f|--force) interactive=force ;;
     (--) shift; break;;
-    (-*) echo "$0: invalid option -- '$1'" 1>&2 ; try_help ; exit 1 ;;
+    (-*) echo "${progname}: invalid option -- '$1'" 1>&2 ; try_help ; exit 1 ;;
     (*) break;;
     esac
   shift
@@ -175,7 +177,7 @@ function can_trash {
 
   if [ ! -e "$filename" ]; then
     if [ "$interactive" != "force" ]; then
-      echo "$0: cannot move \`$filename' to trash: No such file or directory" 1>&2
+      echo "${progname}: cannot move \`$filename' to trash: No such file or directory" 1>&2
     fi
     echo 0
   else
@@ -188,14 +190,14 @@ function can_trash {
     case $interactive in
       never|force) echo 1 ;;
       always)
-        read -p "$0: move ${type} '${filename}' to trash?" yn
+        read -p "${progname}: move ${type} '${filename}' to trash?" yn
         if [[ "$yn" =~ ^[yY]$ ]]; then
           echo 1
         else
           echo 0
         fi
         ;;
-      *) echo "$0: unsupported value interactive=${interactive}" 1>&2 ; echo 0; exit 1 ;;
+      *) echo "${progname}: unsupported value interactive=${interactive}" 1>&2 ; echo 0; exit 1 ;;
     esac
   fi
 }
@@ -205,13 +207,13 @@ function init_trashdir {
 
   mkdir -p "$trashdir/files"
   if [ "$?" != "0" ]; then
-    echo "$0: unable to write to $trashdir" 1>&2
+    echo "${progname}: unable to write to $trashdir" 1>&2
     exit 2
   fi
 
   mkdir -p "$trashdir/info"
   if [ "$?" != "0" ]; then
-    echo "$0: unable to write to $trashdir" 1>&2
+    echo "${progname}: unable to write to $trashdir" 1>&2
     exit 2
   fi
 }
