@@ -15,7 +15,7 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 
-version="0.3.8 \$Id: trash 2011/06/18 13:04:58 BST rr@newfie $"
+version="0.3.9 \$Id: trash 2011/06/18 13:24:35 BST rr@newfie $"
 
 progname=`basename $0`
 
@@ -233,15 +233,9 @@ function trash_file {
     ext=""
   fi
 
-  cnt=1
-  while [ -e "$trashdir/files/$trashname" ] || \
-        [ -e "$trashdir/info/$trashname.trashinfo" ]; do
-    trashname="${origname}_${cnt}${ext}"
-    let cnt=cnt+1
-  done
-
-  deletedfile="$trashdir/files/$trashname"
-  deletedinfo="$trashdir/info/$trashname.trashinfo"
+  deletedfile=$(mktemp --tmpdir="${trashdir}/files" --suffix="${ext}" "${trashname}_XXXXXXXX" )
+  deletedbase=$( basename "${deletedfile}" )
+  deletedinfo="$trashdir/info/${deletedbase}.trashinfo"
 
   canon=`url_encode "$filename"`
 
