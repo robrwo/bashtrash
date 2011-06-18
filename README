@@ -9,10 +9,12 @@ compatible as a replacement for rm.
 It requires the following utilities:
 
   awk
+  basename
   bash
   cat
   getopt
   mkdir
+  mktemp
   mv
   sed
 
