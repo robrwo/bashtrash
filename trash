@@ -15,7 +15,7 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 
-version="0.3.7 \$Id: trash 2011/06/12 21:44:45 BST rr@rebig $"
+version="0.3.8 \$Id: trash 2011/06/18 13:04:58 BST rr@newfie $"
 
 progname=`basename $0`
 
@@ -42,7 +42,7 @@ function try_help {
 
 # Option handling
 
-if ! options=$(getopt -o hvirRf -l "help,verbose,interactive::,version,recursive,force" -n "${progname}" -- $@)
+if ! options=$(getopt -o hvirRf -l "help,verbose,interactive::,version,recursive,force" -n "${progname}" -- "$@")
 then
   exit 1
 fi
@@ -51,15 +51,15 @@ if [ $# -eq 0 ]; then
   try_help
 fi
 
-set -- $options
+#set -- "$options"
 
 verbose=0
 interactive=never
 
 function strip_quotes {
-  x=$1
-  x=${x#\'}
-  x=${x%\'}
+  x="$1"
+  x="${x#\'}"
+  x="${x%\'}"
   echo "${x}"
 }
 
@@ -173,7 +173,7 @@ if [ $verbose != 0 ]; then
 fi
 
 function can_trash {
-  filename=$1
+  filename="$1"
 
   if [ ! -e "$filename" ]; then
     if [ "$interactive" != "force" ]; then
@@ -254,7 +254,6 @@ END
   mv $mv_opts "$filename" "$deletedfile"
 }
 
-
 for f in "$@"
 do
   # strip quotes added by getopts
@@ -263,7 +262,7 @@ do
 
   # get full pathname of file
 
-  filename=$(readlink -f "${f}")
+  filename="$(readlink -f "${f}")"
 
   yes=`can_trash "$filename"`
   if [ "$yes" != "0" ]; then
