@@ -15,7 +15,7 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 
-version="0.3.9 \$Id: trash 2011/06/18 13:24:35 BST rr@newfie $"
+version="0.3.10 \$Id: trash 2011/06/22 07:10:41 BST rr@newfie $"
 
 progname=`basename $0`
 
@@ -233,7 +233,10 @@ function trash_file {
     ext=""
   fi
 
-  deletedfile=$(mktemp --tmpdir="${trashdir}/files" --suffix="${ext}" "${trashname}_XXXXXXXX" )
+  # Use --dry-run option because we cannot mv a directory into a file.
+  # This is technically "unsafe" but we use --no-clobber option in mv.
+
+  deletedfile=$(mktemp --dry-run --tmpdir="${trashdir}/files" --suffix="${ext}" "${trashname}_XXXXXXXX" )
   deletedbase=$( basename "${deletedfile}" )
   deletedinfo="$trashdir/info/${deletedbase}.trashinfo"
 
@@ -245,7 +248,7 @@ Path=$canon
 DeletionDate=`date +"%FT%H:%M:%S"`
 END
 
-  mv $mv_opts "$filename" "$deletedfile"
+  mv $mv_opts --no-clobber "${filename}" "${deletedfile}"
 }
 
 for f in "$@"
