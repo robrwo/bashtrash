@@ -15,7 +15,7 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 
-version="0.3.10 \$Id: trash 2011/06/22 07:10:41 BST rr@newfie $"
+version="0.3.11 \$Id: trash 2011/06/22 07:23:55 BST rr@newfie $"
 
 progname=`basename $0`
 
@@ -248,7 +248,16 @@ Path=$canon
 DeletionDate=`date +"%FT%H:%M:%S"`
 END
 
+  # Note that the trashinfo file will have the ownership and
+  # permissions of the person who deleted the file, and not
+  # necessarily of the original file.
+
   mv $mv_opts --no-clobber "${filename}" "${deletedfile}"
+  if [ "$?" != "0" ]; then
+    echo "${progname}: unable to move ${filename} to ${deletedfile}" 1>&2
+    rm "$deletedinfo"
+    exit 2
+  fi
 }
 
 for f in "$@"
