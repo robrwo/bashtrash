@@ -23,12 +23,12 @@ Usage: trash [OPTION]... FILE...
 Move files into the trash.
 
 Options:
-  --version		show program's version number and exit
-  -h, --help		show this help message and exit
-  -v, --verbose		explain what is being done
-  -i, --interactive	prompt before moving every file
-  -r, -R, --recursive   ignored (for compatability with rm)
-  -f, --force		ignore non-existent files, never prompt
+  --version	show program's version number and exit
+  -h		show this help message and exit
+  -v		explain what is being done
+  -i		prompt before moving every file
+  -r, -R	ignored (for compatability with rm)
+  -f		ignore non-existent files, never prompt
 
 Copyright (c) 2009-2011, Robert Rothenberg <robrwo@gmail.com>
 

@@ -15,7 +15,7 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 
-version="0.3.11 \$Id: trash 2011/06/22 07:23:55 BST rr@newfie $"
+version="0.4.0"
 
 progname=`basename $0`
 
@@ -26,65 +26,19 @@ Usage: ${progname} [OPTION]... FILE...
 Move files into the trash.
 
 Options:
-  --version		show program's version number and exit
-  -h, --help		show this help message and exit
-  -v, --verbose		explain what is being done
-  -i, --interactive	prompt before moving every file
-  -r, -R, --recursive   ignored (for compatability with rm)
-  -f, --force		ignore non-existent files, never prompt
+  --version	show program's version number and exit
+  -h		show this help message and exit
+  -v		explain what is being done
+  -i		prompt before moving every file
+  -r, -R	ignored (for compatability with rm)
+  -f		ignore non-existent files, never prompt
 EOU
 }
 
 function try_help {
-  echo "Try \`${progname} --help' for more information." 1>&2
+  echo "Try \`${progname} -h' for more information." 1>&2
   exit 1
 }
-
-# Option handling
-
-if ! options=$(getopt -o hvirRf -l "help,verbose,interactive::,version,recursive,force" -n "${progname}" -- "$@")
-then
-  exit 1
-fi
-
-if [ $# -eq 0 ]; then
-  try_help
-fi
-
-#set -- "$options"
-
-verbose=0
-interactive=never
-
-function strip_quotes {
-  x="$1"
-  x="${x#\'}"
-  x="${x%\'}"
-  echo "${x}"
-}
-
-while [ $# -gt 0 ]
-do
-case $1 in
-    -h|--help) show_usage ; exit 1;;
-    -v|--verbose) verbose=1 ;;
-    -i) interactive=always ;;
-    --interactive) shift ;
-      arg=`strip_quotes "$1"`
-      if [ -z "$arg" ]; then
-        arg=always
-      fi
-      interactive=$arg
-      ;;
-    --version) echo "${progname} $version" 1>&2 ;;
-    -r|-R|--recursive) ;;
-    -f|--force) interactive=force ;;
-    (--) shift; break;;
-    (-*) echo "${progname}: invalid option -- '$1'" 1>&2 ; try_help ; exit 1 ;;
-    (*) break;;
-    esac
-  shift
-done
 
 # sed script to encode filenames
 
@@ -163,14 +117,6 @@ function get_trashdir {
 
   echo $trashdir
 }
-
-# configure options
-
-mv_opts=""
-
-if [ $verbose != 0 ]; then
-  mv_opts="${mv_opts} -v"
-fi
 
 function can_trash {
   filename="$1"
@@ -252,6 +198,12 @@ Path=$canon
 DeletionDate=`date +"%FT%H:%M:%S"`
 END
 
+  if [ $verbose != 0 ]; then
+      mv_opts="-v"
+  else
+      mv_opts=
+  fi
+
   # Note that the trashinfo file will have the ownership and
   # permissions of the person who deleted the file, and not
   # necessarily of the original file.
@@ -264,11 +216,45 @@ END
   fi
 }
 
-for f in "$@"
-do
-  # strip quotes added by getopts
+# Option handling
 
-  f=`strip_quotes "${f}"`
+function strip_quotes {
+  x="$1"
+  x="${x#\'}"
+  x="${x%\'}"
+  echo "${x}"
+}
+
+if [ $# -eq 0 ]; then
+  try_help
+fi
+
+verbose=0
+interactive=never
+filename=
+
+while getopts hvirRf arg; do
+    case $arg in
+	h) show_usage;
+	    exit 1
+	    ;;
+	i) interactive=always
+	    ;;
+	v) verbose=1
+	    ;;
+	r|R)
+	    ;;
+	f) interactive=force
+	    ;;
+	[?]) try_help
+	    exit 1
+	    ;;
+    esac
+done
+
+shift $(( OPTIND - 1))
+
+for f in "$@"; do
 
   # get full pathname of file
 
