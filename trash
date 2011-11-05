@@ -233,10 +233,11 @@ function trash_file {
     ext=""
   fi
 
-  # Use --dry-run option because we cannot mv a directory into a file.
-  # This is technically "unsafe" but we use --no-clobber option in mv.
+  # Use -u (unsafe) option because we cannot mv a directory into a
+  # file.  This is technically "unsafe" but mv will ask for
+  # confirmation when overwriting.
 
-  deletedfile=$(mktemp --dry-run --tmpdir="${trashdir}/files" --suffix="${ext}" "${trashname}_XXXXXXXX" )
+  deletedfile=$(mktemp -u "${trashdir}/files/${origname}_XXXXXXXX" )$ext
   deletedbase=$( basename "${deletedfile}" )
   deletedinfo="$trashdir/info/${deletedbase}.trashinfo"
 
@@ -252,7 +253,7 @@ END
   # permissions of the person who deleted the file, and not
   # necessarily of the original file.
 
-  mv $mv_opts --no-clobber "${filename}" "${deletedfile}"
+  mv $mv_opts "${filename}" "${deletedfile}"
   if [ "$?" != "0" ]; then
     echo "${progname}: unable to move ${filename} to ${deletedfile}" 1>&2
     rm "$deletedinfo"
