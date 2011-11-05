@@ -228,6 +228,9 @@ function trash_file {
 
   trashname="${filename##*/}"
   origname="${trashname%%.*}"
+  if [ -z "${origname}" ]; then
+      origname="dotfile"
+  fi
   ext=".${trashname##*.}"
   if [ "$ext" == ".$trashname" ]; then
     ext=""
