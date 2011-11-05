@@ -18,9 +18,6 @@ It requires the following utilities:
   mv
   sed
 
-This requires a recent version of mv that supports the -n
-(--no-clobber) option.
-
 Usage: trash [OPTION]... FILE...
 
 Move files into the trash.
