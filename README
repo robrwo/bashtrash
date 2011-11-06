@@ -3,7 +3,7 @@ bashtrash - a bash-shell implementation of the Freedesktop.org
 
 This project was originally a quick hack to show that one could
 implement a compliant trashcan utility using bash and standard Unix
-commands.  It has evolved to have options to make it (somewhat)
+commands.  It has evolved to have options to make it a (somewhat)
 compatible as a replacement for rm.
 
 It requires the following utilities:
